@@ -11,6 +11,11 @@ import { Article } from "./src/models/article.model.js";
 import { Tag } from "./src/models/tag.model.js";
 import { ArticleTag } from "./src/models/articleTag.model.js";
 
+import { authRouter } from "./src/routes/auth.routes.js";
+import { userRouter } from "./src/routes/user.routes.js";
+import { articleRouter } from "./src/routes/article.routes.js";
+import { tagRouter } from "./src/routes/tag.routes.js";
+
 dotenv.config();
 
 const app = express();
@@ -42,6 +47,11 @@ Tag.belongsToMany(Article, {
   foreignKey: "tagId",
   as: "articulos",
 });
+
+app.use("/api", authRouter);
+app.use("/api", userRouter);
+app.use("/api", articleRouter);
+app.use("/api", tagRouter);
 
 app.get("/", (req, res) => {
   res.send("¡Servidor funcionando!");
