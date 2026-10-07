@@ -36,13 +36,13 @@ export const register = async (req, res) => {
       role: role || "user",
     });
 
-    // Crear perfil
+        // Crear perfil
     await Profile.create({
       userId: user.id,
       firstName: firstName || username,
-      lastName: lastName || "",
-      biography: "",
-      avatarUrl: "",
+      lastName: lastName || "Sinapellido",
+      biography: null,
+      avatarUrl: null,
       birthDate: null,
     });
 

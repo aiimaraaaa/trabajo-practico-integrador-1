@@ -9,7 +9,6 @@ import {
   deleteArticle,
 } from "../controllers/article.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
-import { adminMiddleware } from "../middlewares/admin.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import {
   createArticleValidation,

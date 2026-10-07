@@ -16,11 +16,23 @@ import {
 
 export const userRouter = Router();
 
-userRouter.use(authMiddleware);
-userRouter.use(adminMiddleware);
-
-userRouter.get("/users", getAllUsers);
-userRouter.get("/users/:id", getUserById);
-userRouter.post("/users", createUserValidation, validate, createUser);
-userRouter.put("/users/:id", updateUserValidation, validate, updateUser);
-userRouter.delete("/users/:id", deleteUser);
+// Cada ruta tiene sus middlewares (NO usar .use() acá)
+userRouter.get("/users", authMiddleware, adminMiddleware, getAllUsers);
+userRouter.get("/users/:id", authMiddleware, adminMiddleware, getUserById);
+userRouter.post(
+  "/users",
+  authMiddleware,
+  adminMiddleware,
+  createUserValidation,
+  validate,
+  createUser,
+);
+userRouter.put(
+  "/users/:id",
+  authMiddleware,
+  adminMiddleware,
+  updateUserValidation,
+  validate,
+  updateUser,
+);
+userRouter.delete("/users/:id", authMiddleware, adminMiddleware, deleteUser);

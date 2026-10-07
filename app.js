@@ -48,7 +48,7 @@ Tag.belongsToMany(Article, {
   as: "articulos",
 });
 
-app.use("/api", authRouter);
+app.use("/api/auth", authRouter);
 app.use("/api", userRouter);
 app.use("/api", articleRouter);
 app.use("/api", tagRouter);
@@ -59,7 +59,7 @@ app.get("/", (req, res) => {
 
 app.listen(PORT, async () => {
   await startDB();
-  console.log(`Servidor en http://localhost:${PORT}`);
+  console.log(`Servidor en corriendo en http://localhost:${PORT}`);
 });
 
 export default app;
