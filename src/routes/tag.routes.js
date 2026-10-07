@@ -12,12 +12,12 @@ import { validate } from "../middlewares/validate.middleware.js";
 import {
   createTagValidation,
   updateTagValidation,
+  tagIdValidation,
 } from "../validations/tag.validation.js";
 
 export const tagRouter = Router();
 
 tagRouter.get("/tags", authMiddleware, getAllTags);
-
 tagRouter.post(
   "/tags",
   authMiddleware,
@@ -26,7 +26,14 @@ tagRouter.post(
   validate,
   createTag,
 );
-tagRouter.get("/tags/:id", authMiddleware, adminMiddleware, getTagById);
+tagRouter.get(
+  "/tags/:id",
+  authMiddleware,
+  adminMiddleware,
+  tagIdValidation,
+  validate,
+  getTagById,
+);
 tagRouter.put(
   "/tags/:id",
   authMiddleware,
@@ -35,4 +42,11 @@ tagRouter.put(
   validate,
   updateTag,
 );
-tagRouter.delete("/tags/:id", authMiddleware, adminMiddleware, deleteTag);
+tagRouter.delete(
+  "/tags/:id",
+  authMiddleware,
+  adminMiddleware,
+  tagIdValidation,
+  validate,
+  deleteTag,
+);

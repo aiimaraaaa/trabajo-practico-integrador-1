@@ -1,11 +1,14 @@
-import { Op } from "sequelize";
+import { matchedData } from "express-validator";
 import { Article } from "../models/article.model.js";
 import { User } from "../models/user.model.js";
 import { Tag } from "../models/tag.model.js";
 
+//  CREATE 
 export const createArticle = async (req, res) => {
   try {
-    const { title, content, excerpt, status, tags } = req.body;
+    //  matchedData
+    const data = matchedData(req);
+    const { title, content, excerpt, status, tags } = data;
     const userId = req.user.id;
 
     const article = await Article.create({
@@ -17,9 +20,7 @@ export const createArticle = async (req, res) => {
     });
 
     if (tags && tags.length > 0) {
-      const tagInstances = await Tag.findAll({
-        where: { name: tags },
-      });
+      const tagInstances = await Tag.findAll({ where: { name: tags } });
       await article.addEtiquetas(tagInstances);
     }
 
@@ -33,25 +34,17 @@ export const createArticle = async (req, res) => {
   }
 };
 
+//  GET ALL 
 export const getAllArticles = async (req, res) => {
   try {
     const articles = await Article.findAll({
       where: { status: "published" },
       include: [
-        {
-          model: User,
-          as: "autor",
-          attributes: ["id", "username", "email"],
-        },
-        {
-          model: Tag,
-          as: "etiquetas",
-          attributes: ["id", "name"],
-        },
+        { model: User, as: "autor", attributes: ["id", "username", "email"] },
+        { model: Tag, as: "etiquetas", attributes: ["id", "name"] },
       ],
       order: [["createdAt", "DESC"]],
     });
-
     return res.status(200).json(articles);
   } catch (error) {
     console.log(error);
@@ -59,29 +52,19 @@ export const getAllArticles = async (req, res) => {
   }
 };
 
+//  GET BY ID 
 export const getArticleById = async (req, res) => {
   try {
     const { id } = req.params;
-
     const article = await Article.findByPk(id, {
       include: [
-        {
-          model: User,
-          as: "autor",
-          attributes: ["id", "username", "email"],
-        },
-        {
-          model: Tag,
-          as: "etiquetas",
-          attributes: ["id", "name"],
-        },
+        { model: User, as: "autor", attributes: ["id", "username", "email"] },
+        { model: Tag, as: "etiquetas", attributes: ["id", "name"] },
       ],
     });
-
     if (!article) {
       return res.status(404).json({ message: "Artículo no encontrado" });
     }
-
     return res.status(200).json(article);
   } catch (error) {
     console.log(error);
@@ -89,22 +72,15 @@ export const getArticleById = async (req, res) => {
   }
 };
 
+//  MY ARTICLES 
 export const getMyArticles = async (req, res) => {
   try {
     const userId = req.user.id;
-
     const articles = await Article.findAll({
       where: { userId },
-      include: [
-        {
-          model: Tag,
-          as: "etiquetas",
-          attributes: ["id", "name"],
-        },
-      ],
+      include: [{ model: Tag, as: "etiquetas", attributes: ["id", "name"] }],
       order: [["createdAt", "DESC"]],
     });
-
     return res.status(200).json(articles);
   } catch (error) {
     console.log(error);
@@ -112,7 +88,7 @@ export const getMyArticles = async (req, res) => {
   }
 };
 
-// :c
+//  MY ARTICLE BY ID 
 export const getMyArticleById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -120,19 +96,11 @@ export const getMyArticleById = async (req, res) => {
 
     const article = await Article.findOne({
       where: { id, userId },
-      include: [
-        {
-          model: Tag,
-          as: "etiquetas",
-          attributes: ["id", "name"],
-        },
-      ],
+      include: [{ model: Tag, as: "etiquetas", attributes: ["id", "name"] }],
     });
-
     if (!article) {
       return res.status(404).json({ message: "Artículo no encontrado" });
     }
-
     return res.status(200).json(article);
   } catch (error) {
     console.log(error);
@@ -140,19 +108,20 @@ export const getMyArticleById = async (req, res) => {
   }
 };
 
+//  UPDATE 
 export const updateArticle = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, excerpt, status, tags } = req.body;
+    //  matchedData
+    const data = matchedData(req);
+    const { title, content, excerpt, status, tags } = data;
     const userId = req.user.id;
     const userRole = req.user.role;
 
     const article = await Article.findByPk(id);
-
     if (!article) {
       return res.status(404).json({ message: "Artículo no encontrado" });
     }
-
     if (article.userId !== userId && userRole !== "admin") {
       return res
         .status(403)
@@ -168,9 +137,7 @@ export const updateArticle = async (req, res) => {
     await article.update(updateData);
 
     if (tags) {
-      const tagInstances = await Tag.findAll({
-        where: { name: tags },
-      });
+      const tagInstances = await Tag.findAll({ where: { name: tags } });
       await article.setEtiquetas(tagInstances);
     }
 
@@ -184,6 +151,7 @@ export const updateArticle = async (req, res) => {
   }
 };
 
+//  DELETE 
 export const deleteArticle = async (req, res) => {
   try {
     const { id } = req.params;
@@ -191,11 +159,9 @@ export const deleteArticle = async (req, res) => {
     const userRole = req.user.role;
 
     const article = await Article.findByPk(id);
-
     if (!article) {
       return res.status(404).json({ message: "Artículo no encontrado" });
     }
-
     if (article.userId !== userId && userRole !== "admin") {
       return res
         .status(403)
@@ -203,7 +169,6 @@ export const deleteArticle = async (req, res) => {
     }
 
     await article.destroy();
-
     return res
       .status(200)
       .json({ message: "Artículo eliminado correctamente" });

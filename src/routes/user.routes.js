@@ -12,13 +12,20 @@ import { validate } from "../middlewares/validate.middleware.js";
 import {
   createUserValidation,
   updateUserValidation,
+  userIdValidation,
 } from "../validations/user.validation.js";
 
 export const userRouter = Router();
 
-// Cada ruta tiene sus middlewares (NO usar .use() acá)
 userRouter.get("/users", authMiddleware, adminMiddleware, getAllUsers);
-userRouter.get("/users/:id", authMiddleware, adminMiddleware, getUserById);
+userRouter.get(
+  "/users/:id",
+  authMiddleware,
+  adminMiddleware,
+  userIdValidation,
+  validate,
+  getUserById,
+);
 userRouter.post(
   "/users",
   authMiddleware,
@@ -35,4 +42,11 @@ userRouter.put(
   validate,
   updateUser,
 );
-userRouter.delete("/users/:id", authMiddleware, adminMiddleware, deleteUser);
+userRouter.delete(
+  "/users/:id",
+  authMiddleware,
+  adminMiddleware,
+  userIdValidation,
+  validate,
+  deleteUser,
+);

@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Conexión usando variables del .env
 export const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
@@ -15,11 +16,11 @@ export const sequelize = new Sequelize(
   },
 );
 
+// Conecta y sincroniza las tablas
 export const startDB = async () => {
   try {
     await sequelize.authenticate();
     console.log("Conexión a la base de datos establecida.");
-
     await sequelize.sync({ force: false });
     console.log("Tablas sincronizadas correctamente.");
   } catch (error) {
