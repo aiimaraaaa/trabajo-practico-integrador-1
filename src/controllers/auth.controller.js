@@ -4,31 +4,24 @@ import { Profile } from "../models/profile.model.js";
 import { hashPassword, comparePassword } from "../helpers/bcrypt.helper.js";
 import { generateToken } from "../helpers/jwt.helper.js";
 
+//  REGISTER 
 export const register = async (req, res) => {
   try {
-    const { username, email, password, firstName, lastName, role } = req.body;
+    // matchedData (solo campos validados)
+    const data = matchedData(req);
+    const { username, email, password, firstName, lastName, role } = data;
 
-    // Verificar si el usuario ya existe
-    const userExist = await User.findOne({
-      where: { username },
-    });
-
+    const userExist = await User.findOne({ where: { username } });
     if (userExist) {
       return res.status(400).json({ message: "El username ya está en uso" });
     }
-
-    const emailExist = await User.findOne({
-      where: { email },
-    });
-
+    const emailExist = await User.findOne({ where: { email } });
     if (emailExist) {
       return res.status(400).json({ message: "El email ya está en uso" });
     }
 
-    // Hashear contraseña
     const hashedPassword = await hashPassword(password);
 
-    // Crear usuario
     const user = await User.create({
       username,
       email,
@@ -36,13 +29,13 @@ export const register = async (req, res) => {
       role: role || "user",
     });
 
-    // Crear perfil
+    
     await Profile.create({
       userId: user.id,
       firstName: firstName || username,
-      lastName: lastName || "",
-      biography: "",
-      avatarUrl: "",
+      lastName: lastName || "Sinapellido",
+      biography: null,
+      avatarUrl: null,
       birthDate: null,
     });
 
@@ -61,41 +54,33 @@ export const register = async (req, res) => {
   }
 };
 
+//  LOGIN 
 export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Buscar usuario
     const user = await User.findOne({
       where: { username },
-      include: {
-        model: Profile,
-        as: "perfil",
-      },
+      include: { model: Profile, as: "perfil" },
     });
 
     if (!user) {
       return res.status(401).json({ message: "Credenciales incorrectas" });
     }
-
-    // Verificar contraseña
     const validPassword = await comparePassword(password, user.password);
-
     if (!validPassword) {
       return res.status(401).json({ message: "Credenciales incorrectas" });
     }
 
-    // Generar token
     const token = generateToken({
       id: user.id,
       username: user.username,
       role: user.role,
     });
 
-    // Enviar token como cookie
     res.cookie("token", token, {
       httpOnly: true,
-      maxAge: 1000 * 60 * 60,
+      maxAge: 1000 * 60 * 60, // 1 hora
     });
 
     return res.status(200).json({
@@ -113,26 +98,47 @@ export const login = async (req, res) => {
   }
 };
 
+//  LOGOUT 
 export const logout = (req, res) => {
   res.clearCookie("token");
   return res.status(200).json({ message: "Logout exitoso" });
 };
 
+//  PROFILE 
 export const profile = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      include: {
-        model: Profile,
-        as: "perfil",
-      },
+      include: { model: Profile, as: "perfil" },
       attributes: { exclude: ["password"] },
     });
-
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
-
     return res.status(200).json(user);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+// UPDATE PROFILE 
+export const updateProfile = async (req, res) => {
+  try {
+    const data = matchedData(req);
+
+    const profileExist = await Profile.findOne({
+      where: { userId: req.user.id },
+    });
+    if (!profileExist) {
+      return res.status(404).json({ message: "Perfil no encontrado" });
+    }
+
+    await profileExist.update(data);
+
+    return res.status(200).json({
+      message: "Perfil actualizado exitosamente",
+      profile: profileExist,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Error interno del servidor" });
